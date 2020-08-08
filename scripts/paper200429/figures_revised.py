@@ -93,10 +93,10 @@ def run_model_three_change_points():
     # these variables are needed by some plot functions
     global prior_date_mild_dist_begin
     global prior_date_strong_dist_begin
-    global prior_date_contact_ban_begin
-    prior_date_mild_dist_begin = datetime.datetime(2020, 3, 9)
-    prior_date_strong_dist_begin = datetime.datetime(2020, 3, 16)
-    prior_date_contact_ban_begin = datetime.datetime(2020, 3, 23)
+    global prior_date_reopen_begin
+    prior_date_mild_dist_begin = datetime.datetime(2020, 3, 15)
+    prior_date_strong_dist_begin = datetime.datetime(2020, 3, 26)
+    prior_date_reopen_begin = datetime.datetime(2020, 6, 15)
 
     change_points = [
         dict(
@@ -119,22 +119,40 @@ def run_model_three_change_points():
         ),
     ]
 
+    
+    
+    cov19.SEIR_with_extensions( new_cases_obs= np.diff(cases_obs),
+                                            change_points_list = change_points[:num_change_points],
+                                            date_begin_simulation = date_begin_sim,
+                                            num_days_sim = num_days_sim,
+                                            diff_data_sim = diff_data_sim,
+                                            N = 98e6,
+                                            priors_dict=None,
+                                            with_random_walk = True,
+                                            weekends_modulated=True,
+                                            weekend_modulation_type = 'abs_sine')
+        
+    
+    
+    
     models = []
     for num_change_points in range(4):
-        model = cov19.SIR_with_change_points(
-            new_cases_obs=np.diff(cases_obs),
-            change_points_list=change_points[:num_change_points],
-            date_begin_simulation=date_begin_sim,
-            num_days_sim=num_days_sim,
-            diff_data_sim=diff_data_sim,
-            N=83e6,
-            priors_dict=None,
-        )
+        model = cov19.SEIR_with_extensions( new_cases_obs= np.diff(cases_obs),
+                                            change_points_list = change_points[:num_change_points],
+                                            date_begin_simulation = date_begin_sim,
+                                            num_days_sim = num_days_sim,
+                                            diff_data_sim = diff_data_sim,
+                                            N = 98e6,
+                                            priors_dict=None,
+                                            with_random_walk = True,
+                                            weekends_modulated=True,
+                                            weekend_modulation_type = 'abs_sine')
+    
         models.append(model)
 
     traces = []
     for model in models:
-        traces.append(pm.sample(model=model, init="advi", draws=3000))
+        traces.append(pm.sample(model=model, init="advi", draws=400))
 
     return models, traces
 
@@ -145,7 +163,7 @@ def create_figure_0(save_to=None):
         traces
     except NameError:
         print(f"Have to run simulations first, this will take some time")
-        _, traces = run_model_three_change_points()
+        _, traces = 
 
     trace = traces[3]
     posterior = traces[1:]
@@ -362,7 +380,7 @@ def create_figure_0(save_to=None):
         )
 
     ax.set_xlabel("Date")
-    ax.set_ylabel("New confirmed cases\nin Germany")
+    ax.set_ylabel("New confirmed cases\nin Egypt")
     ax.text(pos_letter[0], pos_letter[1], "B", transform=ax.transAxes, size=20)
     ax.legend(loc="upper left")
     ax.set_ylim(0, 15_000)
@@ -436,7 +454,7 @@ def create_figure_0(save_to=None):
         )
 
     ax.set_xlabel("Date")
-    ax.set_ylabel("Total confirmed cases\nin Germany")
+    ax.set_ylabel("Total confirmed cases\nin Egypt")
     ax.text(pos_letter[0], pos_letter[1], "C", transform=ax.transAxes, size=20)
     ax.legend(loc="upper left")
     ax.set_ylim(0, 200_000)
